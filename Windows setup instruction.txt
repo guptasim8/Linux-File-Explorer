@@ -1,0 +1,26 @@
+1. Install ubuntu from windows store
+2. Enable -
+a. Search turn windows feature on or off
+b. Tick Windows Subsystem for Linux and Apply changes
+3.Restart your system.
+4. On windows store , open ubuntu and create username and password
+5. Install C++
+sudo apt-get update
+sudo apt install g++
+
+
+Note-
+Reset Password- https://askubuntu.com/questions/772050/reset-the-password-in-ubuntu-linux-bash-in-windows
+1. a. Open Windows Command Prompt
+b. In Windows PowerShell (Super+X, i) you can log in to the Ubuntu root account with
+~wsl --user root
+c. Then change the password as you usually would, i.e. for the current user (which is root) with
+~passwd
+or for another user with
+~passwd username
+
+a. For example to create a new user named username you would run:
+~ sudo useradd username
+b. To be able to log in as the newly created user, you need to set the user password. To do that run the passwd command followed by the username:
+~ sudo passwd username
+
