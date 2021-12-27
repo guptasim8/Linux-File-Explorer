@@ -1,12 +1,6 @@
-#include <bits/stdc++.h>
-#include <filesystem>
-#include <sys/stat.h>
-#include<pwd.h>
-#include <grp.h>
-#include <termios.h>
-#include <sys/ioctl.h>
-using namespace std;
-using namespace std::filesystem;
+#include "header"
+void printDir(path p);
+void scrollDir(vector<directory_entry> &dir, int first,int last,int curr);
 
 string perms_linux(perms p){
 	ostringstream ss;
@@ -67,7 +61,7 @@ void print_dirent(directory_entry const& d,bool color=false){
 		out << ctime(&fileStat.st_mtime);
 
 		string entry=out.str();
-		if(color)entry="\033[1;31;106m"+entry+"\033[0m";
+		if(color)entry="\033[7m"+entry+"\033[0m";
 		cout << entry;
 }
 void scrollDir(vector<directory_entry> &dir, int first,int last,int curr){
@@ -79,7 +73,7 @@ void scrollDir(vector<directory_entry> &dir, int first,int last,int curr){
 	newrsettings.c_lflag &= ~ECHO;
 	tcsetattr(fileno(stdin), TCSAFLUSH, &newrsettings);
     while(true){
-        cout << "\033[2J\033[1;1H";
+        cout << "\033c";
         ostringstream out;
         out << "File Name\t\tFile Size\tPermission\tUserID\t\tGroupID\t\tLast Modified\n" ;
 	    out << string(112,'-');
@@ -89,7 +83,8 @@ void scrollDir(vector<directory_entry> &dir, int first,int last,int curr){
         else print_dirent(dir[i]);
         }
 
-        if ((cin.get()==27)){
+        char key=cin.get();
+        if (key==27){
             cin.get();
             char c=cin.get();
             if (c=='A') {
@@ -124,15 +119,26 @@ void scrollDir(vector<directory_entry> &dir, int first,int last,int curr){
             //if (e==67) { cout << "RIGHT";}
             //if (e==68) { cout << "LEFT";}
         }
+        else if (key==10){
+            if(dir[curr].is_directory()){
+                if(curr==0)continue;
+                if(curr==1)break;
+                printDir(dir[curr].path());
+            }
+        }
         else break;
     }
     tcsetattr(fileno(stdin), TCSANOW, &initialrsettings);
 }
+
 void printDir(path p){
 	directory_iterator d_itr(p);
 	vector<directory_entry> dir({directory_entry("."),directory_entry("..")});
-	for (auto e : d_itr)
+	for (auto e : d_itr){
+        //skip hidden files
+        if((e.status().permissions() & perms::owner_read) == perms::none)continue;
 		dir.push_back(e);
+	}
     int first=0,last=dir.size();
     if(last>25)last=25;
     int curr=1;
