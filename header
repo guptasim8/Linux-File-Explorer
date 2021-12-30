@@ -9,6 +9,6 @@
 #include <sys/ioctl.h>
 using namespace std;
 using namespace std::filesystem;
-
-#include "DirectoryEntry.cpp"
+#include "FileOperations.cpp"
+#include "DirectoryOperations.cpp"
 #endif // HEADER_INCLUDED
