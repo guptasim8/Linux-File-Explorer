@@ -9,7 +9,6 @@ void print_header(){
 }
 bool search(path p, string keyword){
     recursive_directory_iterator r_d_itr(p);
-    //bool res=false;
     for (auto e : r_d_itr){
         if (e.path().stem() == keyword){
             return true;
@@ -58,16 +57,18 @@ void processCommand(string command){
         else cout<<"Files moved to "<<dest<<" successfully\n";
     }
     else if(tokens[0]=="move"){
-        //if(directory_entry(tokens[1]).is_regular_file())
         if(!directory_entry(tokens[1]).exists())cout<<"No such File/Directory exist in "<<current_path()<<endl;
         else rename(path(tokens[1]),path(string(tokens[2])+"/"+tokens[1]));
     }
     else if(tokens[0]=="rename"){
-        //if(directory_entry(tokens[1]).is_regular_file())
         if(!directory_entry(tokens[1]).exists())cout<<"No such File/Directory exist in "<<current_path()<<endl;
         else rename(path(tokens[1]),path(tokens[2]));
     }
-    //else if(tokens[0]=="create_file"){}
+    else if(tokens[0]=="create_file"){
+	fstream f;
+        f.open(tokens[2]+"/"+ tokens[1], ios::app);
+        f.close();
+    }
     else if(tokens[0]=="create_dir"){
             create_directory(current_path()/tokens[1]);
     }
@@ -86,8 +87,6 @@ void processCommand(string command){
     else if(tokens[0]=="search"){
         cout<<search(current_path(),tokens[1]);
     }
-        //case "search": break;
-
 }
 
 bool enterCommandMode(){
@@ -104,12 +103,8 @@ bool enterCommandMode(){
         else if(c==10){
             cout<<"\n";
             //enter
-            if(command=="q"){
-                    return true;
-            }
-            if(command=="usermode"){
-                    return false;
-            }
+            if(command=="q")return true;
+            if(command=="usermode")return false;
             processCommand(command);
             command="";
             print_header();
