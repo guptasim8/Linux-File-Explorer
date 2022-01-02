@@ -7,7 +7,7 @@ b. Tick Windows Subsystem for Linux and Apply changes
 5. Install C++
 sudo apt-get update
 sudo apt install g++
-
+Install make File- sudo apt install make
 
 Note-
 Reset Password- https://askubuntu.com/questions/772050/reset-the-password-in-ubuntu-linux-bash-in-windows

@@ -1,7 +1,5 @@
-#include "header"
-#include<spawn.h>
-#include<sys/wait.h>
-extern char **environ;
+#include "header.h"
+
 void openFile(string filename){
     pid_t newProcess;
     char* argv[]={"nano",new char[filename.size()+1],NULL};
