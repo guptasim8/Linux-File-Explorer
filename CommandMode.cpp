@@ -1,20 +1,20 @@
-#include "header"
+#include "header.h"
 void print_header(){
         ostringstream out;
 		struct stat fileStat;
         stat(current_path().filename().c_str(), &fileStat);
         struct passwd *pw = getpwuid(fileStat.st_uid);
-		out << "\033[0;32m"<<pw->pw_name << "@"<<current_path().string()<<":"<<"\033[0m";
+		out << GREEN<<pw->pw_name << "@"<<current_path().string()<<":"<<RESETCOLOR;
 		cout <<out.str();
 }
 bool search(path p, string keyword){
-    recursive_directory_iterator r_d_itr(p);
-    for (auto e : r_d_itr){
+    directory_iterator d_itr(p);
+    for (auto e : d_itr){
         if (e.path().stem() == keyword){
             return true;
         }
         if(e.is_directory()){
-            if(search(e.path(),keyword))return true;
+            if(((e.status().permissions()&perms::owner_read)!= perms::none)&&search(e.path(),keyword))return true;
         }
     }
     return false;
@@ -65,8 +65,8 @@ void processCommand(string command){
         else rename(path(tokens[1]),path(tokens[2]));
     }
     else if(tokens[0]=="create_file"){
-	fstream f;
-        f.open(tokens[2]+"/"+ tokens[1], ios::app);
+        fstream f;
+        f.open(tokens[2] + "/" + tokens[1], ios::app);
         f.close();
     }
     else if(tokens[0]=="create_dir"){
@@ -85,7 +85,7 @@ void processCommand(string command){
         else current_path(absolute(path(tokens[1])));
     }
     else if(tokens[0]=="search"){
-        cout<<search(current_path(),tokens[1]);
+        cout<< (search(current_path(),tokens[1])?"True":"False") <<endl;
     }
 }
 
@@ -103,14 +103,32 @@ bool enterCommandMode(){
         else if(c==10){
             cout<<"\n";
             //enter
-            if(command=="q")return true;
-            if(command=="usermode")return false;
+            if(command=="q"){
+                    return true;
+            }
+            else if(command=="switch"){
+                    return false;
+            }
+            else if(command=="clear"){
+                cout << CLEAR;
+            }
             processCommand(command);
             command="";
             print_header();
 
         }
-        else if(c==27){}
+        else if(c==27){
+            if(cin.gcount()>0){
+                    //ignore next two char [ [A or [B, [C, [D
+                cin.get();
+                cin.get();
+            }
+            else{
+                command+=c;
+                cout<<c;
+            }
+        }
+
         else{
             command+=c;
             cout<<c;

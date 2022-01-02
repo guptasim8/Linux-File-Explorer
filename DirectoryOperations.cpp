@@ -1,9 +1,6 @@
-#include "header"
-
-void printDir(path p);
-void scrollDir(int first,int last,int curr);
+#include "header.h"
 vector<directory_entry> dir;
-path curr_path;
+
 string perms_linux(perms p){
 	ostringstream ss;
 	ss << ((p & perms::owner_read) != perms::none ? "r" : "-")
@@ -31,35 +28,30 @@ string file_size(double size) {
 }
 
 void print_dirent(directory_entry const& d,bool color=false){
-        ostringstream out;
-        string filename=d.path().filename().c_str();
-        filename=(filename.size()>24)?(filename.substr(0,21)+".. "):filename;
-		out << filename<< string(24 - out.str().length(), ' ');
+    ostringstream out;
+    string filename=d.path().filename().c_str();
+    filename=(filename.size()>24)?(filename.substr(0,21)+".. "):filename;
+    out << filename<< string(24 - out.str().length(), ' ');
 
-		if(!d.is_directory()) out << file_size(d.file_size());
-		out << string(40 - out.str().length(), ' ');
+    if(!d.is_directory()) out << file_size(d.file_size());
+    out << string(40 - out.str().length(), ' ');
+    out << ((d.is_directory()) ? 'd' : '-');
+    out << perms_linux(d.status().permissions())<< string(56 - out.str().length(), ' ');
 
-		out << ((d.is_directory()) ? 'd' : '-');
-
-		out << perms_linux(d.status().permissions())<< string(56 - out.str().length(), ' ');
-
-		struct stat fileStat;
-        stat(d.path().filename().c_str(), &fileStat);
-        //Unsigned It type User ID to user name and Group ID to group name
-        struct passwd *pw = getpwuid(fileStat.st_uid);
-		out << pw->pw_name << string(72 - out.str().length(), ' ');
-		struct group *gp = getgrgid(fileStat.st_gid);
-		out << gp->gr_name << string(88 - out.str().length(), ' ');
-
-		out << ctime(&fileStat.st_mtime);
-
-		string entry=out.str();
-		if(color)entry= INVERTCOLOR +entry+ RESETCOLOR;
-		cout << entry;
+    struct stat fileStat;
+    stat(d.path().filename().c_str(), &fileStat);
+    //Unsigned It type User ID to user name and Group ID to group name
+    struct passwd *pw = getpwuid(fileStat.st_uid);
+    out << pw->pw_name << string(72 - out.str().length(), ' ');
+    struct group *gp = getgrgid(fileStat.st_gid);
+    out << gp->gr_name << string(88 - out.str().length(), ' ');
+    out << ctime(&fileStat.st_mtime);
+    string entry=out.str();
+    if(color)entry= INVERTCOLOR +entry+ RESETCOLOR;
+    cout << entry;
 }
 void updateDirectoryEntries(path p, int &first, int &last,int &curr){
-    curr_path=p;
-    current_path(curr_path);
+    current_path(p);
     dir.clear();
     dir={directory_entry("."),directory_entry("..")};
     directory_iterator d_itr(p);
@@ -73,12 +65,11 @@ void scrollDir(int first,int last,int curr,
                stack<path> &fSt,stack<path> &bSt){
     struct termios initialrsettings, newrsettings;
     tcgetattr(fileno(stdin), &initialrsettings);
-    //switch to canonical mode and echo mode
+    //switch to canonical mode
     newrsettings = initialrsettings;
     newrsettings.c_lflag &= ~ICANON;
 	newrsettings.c_lflag &= ~ECHO;
 	tcsetattr(fileno(stdin), TCSAFLUSH, &newrsettings);
-	//tcsetattr(fileno(stdin), TCSANOW, &newrsettings);
     while(true){
         cout << CLEAR;
         ostringstream out;
@@ -119,19 +110,18 @@ void scrollDir(int first,int last,int curr,
                 }
             }
             if (c==67) {
-                //cout << "RIGHT";//fwd
+                // "RIGHT" next dir
                 if(!fSt.empty()){
-                    bSt.push(curr_path);
+                    bSt.push(current_path());
                     path p=absolute(fSt.top());
                     fSt.pop();
                     updateDirectoryEntries(p,first,last,curr);
                 }
             }
-
             if (c==68) {
-                //cout << "LEFT";
+                // "LEFT" prev dir
                 if(!bSt.empty()){
-                    fSt.push(curr_path);
+                    fSt.push(current_path());
                     path p=absolute(bSt.top());
                     bSt.pop();
                     updateDirectoryEntries(p,first,last,curr);
@@ -142,12 +132,12 @@ void scrollDir(int first,int last,int curr,
             if(dir[curr].is_directory()){
                 if(curr==0)continue;
                 else if(curr==1){
-                    bSt.push(curr_path);
-                    path p=absolute(curr_path.parent_path());
+                    bSt.push(current_path());
+                    path p=absolute(current_path().parent_path());
                     while(!fSt.empty())fSt.pop();
                     updateDirectoryEntries(p,first,last,curr);
                 }else{
-                    bSt.push(curr_path);
+                    bSt.push(current_path());
                     path p=absolute(dir[curr].path());
                     while(!fSt.empty())fSt.pop();
                     updateDirectoryEntries(p,first,last,curr);
@@ -158,13 +148,13 @@ void scrollDir(int first,int last,int curr,
             }
         }
         else if(key==127){
-            bSt.push(curr_path);
-            path p=absolute(curr_path.parent_path());
+            bSt.push(current_path());
+            path p=absolute(current_path().parent_path());
             while(!fSt.empty())fSt.pop();
             updateDirectoryEntries(p,first,last,curr);
-        }//home
+        }//home -h
         else if(key==104||key==72){
-            bSt.push(curr_path);
+            bSt.push(current_path());
             path p=absolute("/home");
             while(!fSt.empty())fSt.pop();
             updateDirectoryEntries(p,first,last,curr);
@@ -172,10 +162,8 @@ void scrollDir(int first,int last,int curr,
         else if(key==':'){
             //command mode
             if(enterCommandMode())break;
-            curr_path=current_path();
             updateDirectoryEntries(current_path(),first,last,curr);
         }
-        //else break;
     }
     tcsetattr(fileno(stdin), TCSANOW, &initialrsettings);
 }
@@ -183,12 +171,10 @@ void scrollDir(int first,int last,int curr,
 
 void printDir(path p){
     p=absolute(p);
-    curr_path=p;
+    current_path(p);
 	directory_iterator d_itr(p);
 	dir={directory_entry("."),directory_entry("..")};
 	for (auto e : d_itr){
-        //skip hidden files
-        //if((e.status().permissions() & perms::owner_read) == perms::none)continue;
 		dir.push_back(e);
 	}
     int first=0,last=dir.size();
