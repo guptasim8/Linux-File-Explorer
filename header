@@ -7,8 +7,17 @@
 #include <grp.h>
 #include <termios.h>
 #include <sys/ioctl.h>
+#include<spawn.h>
+#include<sys/wait.h>
+#include <fstream>
 using namespace std;
 using namespace std::filesystem;
+//*constants*//
+#define INVERTCOLOR "\033[7m"
+#define RESETCOLOR "\033[0m"
+#define CLEAR "\033c"
+
 #include "FileOperations.cpp"
+#include "CommandMode.cpp"
 #include "DirectoryOperations.cpp"
 #endif // HEADER_INCLUDED

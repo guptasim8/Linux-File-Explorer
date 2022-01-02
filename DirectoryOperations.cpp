@@ -1,7 +1,5 @@
 #include "header"
-#define INVERTCOLOR "\033[7m"
-#define RESETCOLOR "\033[0m"
-#define CLEAR "\033c"
+
 void printDir(path p);
 void scrollDir(int first,int last,int curr);
 vector<directory_entry> dir;
@@ -139,7 +137,7 @@ void scrollDir(int first,int last,int curr,
                     updateDirectoryEntries(p,first,last,curr);
                 }
             }
-        }
+        }//enter
         else if (key==10){
             if(dir[curr].is_directory()){
                 if(curr==0)continue;
@@ -170,6 +168,16 @@ void scrollDir(int first,int last,int curr,
             path p=absolute("/home");
             while(!fSt.empty())fSt.pop();
             updateDirectoryEntries(p,first,last,curr);
+        }
+        else if(key==':'){
+            //command mode
+            if(enterCommandMode(current_path()))break;
+            curr_path=current_path();
+            updateDirectoryEntries(current_path(),first,last,curr);
+        }
+        else if(key==27){
+            //ESC
+            break;
         }
         else break;
     }
