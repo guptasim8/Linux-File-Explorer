@@ -171,15 +171,11 @@ void scrollDir(int first,int last,int curr,
         }
         else if(key==':'){
             //command mode
-            if(enterCommandMode(current_path()))break;
+            if(enterCommandMode())break;
             curr_path=current_path();
             updateDirectoryEntries(current_path(),first,last,curr);
         }
-        else if(key==27){
-            //ESC
-            break;
-        }
-        else break;
+        //else break;
     }
     tcsetattr(fileno(stdin), TCSANOW, &initialrsettings);
 }

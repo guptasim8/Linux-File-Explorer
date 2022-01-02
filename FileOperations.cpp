@@ -1,7 +1,12 @@
 #include "header"
-#include<spawn.h>
-#include<sys/wait.h>
 extern char **environ;
+/*bool copyFile(const char *SRC, const char* DEST)
+{
+    std::ifstream src(SRC, std::ios::binary);
+    std::ofstream dest(DEST, std::ios::binary);
+    dest << src.rdbuf();
+    return src && dest;
+}*/
 void openFile(string filename){
     pid_t newProcess;
     char* argv[]={"nano",new char[filename.size()+1],NULL};
